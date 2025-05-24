@@ -1,0 +1,19 @@
+# Ignore Visual Studio build files
+Builds/
+*.sln
+*.vcxproj*
+*.obj
+*.pdb
+*.ipch
+*.aps
+*.ncb
+*.sdf
+*.opensdf
+*.cache
+*.tlog
+*.log
+
+# JUCE-generated junk
+.juce
+*.jucer
+*.vs/
