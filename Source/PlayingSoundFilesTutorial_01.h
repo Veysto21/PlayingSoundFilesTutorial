@@ -112,52 +112,60 @@ public:
         stopButton.setBounds (10, 70, getWidth() - 20, 20);
     }
 
-    void changeListenerCallback (juce::ChangeBroadcaster* source) override
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override
     {
         if (source == &transportSource)
         {
             if (transportSource.isPlaying())
-                changeState (Playing);
-            else
-                changeState (Stopped);
+                changeState(Playing);
+            else if ((state == Stopping) || (state == Playing))
+                changeState(Stopped);
+            else if (Pausing == state)
+                changeState(Paused);
         }
     }
 
 private:
-    enum TransportState
-    {
+    enum TransportState {
         Stopped,
         Starting,
         Playing,
+        Pausing,
+        Paused,
         Stopping
     };
 
-    void changeState (TransportState newState)
+    void changeState(TransportState newState)
     {
         if (state != newState)
         {
             state = newState;
-
             switch (state)
             {
-                case Stopped:                           // [3]
-                    stopButton.setEnabled (false);
-                    playButton.setEnabled (true);
-                    transportSource.setPosition (0.0);
-                    break;
-
-                case Starting:                          // [4]
-                    playButton.setEnabled (false);
-                    transportSource.start();
-                    break;
-
-                case Playing:                           // [5]
-                    stopButton.setEnabled (true);
-                    break;
-
-                case Stopping:                          // [6]
-                    transportSource.stop();
-                    break;
+            case Stopped:
+                playButton.setButtonText("Play");
+                stopButton.setButtonText("Stop");
+                stopButton.setEnabled(false);
+                transportSource.setPosition(0.0);
+                break;
+            case Starting:
+                transportSource.start();
+                break;
+            case Playing:
+                playButton.setButtonText("Pause");
+                stopButton.setButtonText("Stop");
+                stopButton.setEnabled(true);
+                break;
+            case Pausing:
+                transportSource.stop();
+                break;
+            case Paused:
+                playButton.setButtonText("Resume");
+                stopButton.setButtonText("Return to Zero");
+                break;
+            case Stopping:
+                transportSource.stop();
+                break;
             }
         }
     }
@@ -191,12 +199,18 @@ private:
 
     void playButtonClicked()
     {
-        changeState (Starting);
+        if ((state == Stopped) || (state == Paused))
+            changeState(Starting);
+        else if (state == Playing)
+            changeState(Pausing);
     }
 
     void stopButtonClicked()
     {
-        changeState (Stopping);
+        if (state == Paused)
+            changeState(Stopped);
+        else
+            changeState(Stopping);
     }
 
     //==========================================================================
